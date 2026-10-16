@@ -21,7 +21,7 @@ build:image:
   before_script:
     - mkdir -p /etc/docker ~/.docker
     - echo registry.xroad.local:80 > /etc/docker/daemon.json
-    - echo registry.xroad.local:80 > ~/.docker/daemon.json
+    - echo gitlab.xroad.local:5050] > ~/.docker/daemon.json
   script:
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin registry.xroad.local:80
     - docker build -t registry.xroad.local:80/root/tiemtarot:latest -t registry.xroad.local:80/root/tiemtarot:$CI_COMMIT_SHORT_SHA .
