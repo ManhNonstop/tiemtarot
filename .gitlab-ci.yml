@@ -23,10 +23,10 @@ build:image:
     - cat /etc/hosts
     - echo "Ping test:"
     - ping -c 2 registry.xroad.local || true
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin http://$CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE:latest -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
-    - docker push $CI_REGISTRY_IMAGE:latest
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin registry.xroad.local:80
+    - docker build -t registry.xroad.local:80/root/tiemtarot:latest -t registry.xroad.local:80/root/tiemtarot:$CI_COMMIT_SHORT_SHA .
+    - docker push registry.xroad.local:80/root/tiemtarot:latest
+    - docker push registry.xroad.local:80/root/tiemtarot:$CI_COMMIT_SHORT_SHA
 
 deploy:dev:
   stage: deploy
