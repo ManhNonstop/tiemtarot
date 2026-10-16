@@ -15,7 +15,7 @@ build:image:
   image: docker:24.0.5
   services:
     - name: docker:24.0.5-dind
-      command: ["--insecure-registry=registry.xroad.local", "--insecure-registry=gitlab.xroad.local:5050"]
+      command: ["--insecure-registry=registry.xroad.local", "--insecure-registry=registry.xroad.local:80"]
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://localhost:2375
