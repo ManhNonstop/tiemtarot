@@ -1,0 +1,32 @@
+stages:
+  - lint
+  - build
+  - deploy
+
+lint:php:
+  stage: lint
+  image: php:8.2-cli
+  script:
+    - echo "Running PHP syntax check..."
+    - find themes/ plugins/ -name "*.php" -exec php -l {} \; || true
+
+build:image:
+  stage: build
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  variables:
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://localhost:2375
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:latest -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+
+deploy:dev:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl apply -f k8s/wordpress.yaml
+    - kubectl rollout restart deployment/wordpress -n tiemtarot

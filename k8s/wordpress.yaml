@@ -1,0 +1,84 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wp-uploads-pvc
+  namespace: tiemtarot
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: nfs-client
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wordpress
+  namespace: tiemtarot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wordpress
+  template:
+    metadata:
+      labels:
+        app: wordpress
+    spec:
+      containers:
+        - name: wordpress
+          image: gitlab.xroad.local:5050/root/tiemtarot:latest
+          imagePullPolicy: Always
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: "mysql:3306"
+            - name: WORDPRESS_DB_NAME
+              value: "tiemtarot_db"
+            - name: WORDPRESS_DB_USER
+              value: "wp_user"
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: MYSQL_PASSWORD
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - mountPath: /var/www/html/wp-content/uploads
+              name: wp-uploads
+      volumes:
+        - name: wp-uploads
+          persistentVolumeClaim:
+            claimName: wp-uploads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress
+  namespace: tiemtarot
+spec:
+  ports:
+    - port: 80
+  selector:
+    app: wordpress
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wordpress-ingress
+  namespace: tiemtarot
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+    - host: tiemtarot.xroad.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: wordpress
+                port:
+                  number: 80
