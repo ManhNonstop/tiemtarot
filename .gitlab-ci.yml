@@ -12,18 +12,19 @@ lint:php:
 
 build:image:
   stage: build
-  image: docker:24.0.5
-  services:
-    - name: docker:24.0.5-dind
-      command: ["--insecure-registry=registry.xroad.local", "--insecure-registry=registry.xroad.local:80", "--insecure-registry=gitlab.xroad.local:5050"]
-  variables:
-    DOCKER_TLS_CERTDIR: ""
-    DOCKER_HOST: tcp://localhost:2375
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
   script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
-    - docker build -t $CI_REGISTRY_IMAGE:latest -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
-    - docker push $CI_REGISTRY_IMAGE:latest
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"http://$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${CI_REGISTRY_IMAGE}:latest"
+      --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHORT_SHA}"
+      --insecure
+      --skip-tls-verify
 
 deploy:dev:
   stage: deploy
