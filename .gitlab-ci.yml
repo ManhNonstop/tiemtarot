@@ -15,18 +15,15 @@ build:image:
   image: docker:24.0.5
   services:
     - name: docker:24.0.5-dind
+      command: ["--insecure-registry=registry.xroad.local", "--insecure-registry=registry.xroad.local:80", "--insecure-registry=gitlab.xroad.local:5050"]
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://localhost:2375
-  before_script:
-    - mkdir -p /etc/docker ~/.docker
-    - echo gitlab.xroad.local:5050] > /etc/docker/daemon.json
-    - echo gitlab.xroad.local:5050] > ~/.docker/daemon.json
   script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin registry.xroad.local:80
-    - docker build -t registry.xroad.local:80/root/tiemtarot:latest -t registry.xroad.local:80/root/tiemtarot:$CI_COMMIT_SHORT_SHA .
-    - docker push registry.xroad.local:80/root/tiemtarot:latest
-    - docker push registry.xroad.local:80/root/tiemtarot:$CI_COMMIT_SHORT_SHA
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin $CI_REGISTRY
+    - docker build -t $CI_REGISTRY_IMAGE:latest -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
 
 deploy:dev:
   stage: deploy
