@@ -21,6 +21,7 @@ build:image:
     DOCKER_HOST: tcp://localhost:2375
   script:
     - cat /etc/hosts
+    - docker info | sed -n "/Insecure Registries/,+8p"
     - echo "Ping test:"
     - ping -c 2 registry.xroad.local || true
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin registry.xroad.local:80
